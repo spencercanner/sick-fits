@@ -30,17 +30,28 @@ const Query = {
 
     const order = await ctx.db.query.order({
       where: {id: args.id},
-    });
+    }, info);
 
     const ownsOrder = order.user.id === ctx.request.userId;
-    const hasPermissionToSeeOrder = ctx.request.permission.includes('ADMIN');
+    const hasPermissionToSeeOrder = ctx.request.user.permissions.includes('ADMIN');
 
     if(!ownsOrder || !hasPermissionToSeeOrder) {
       throw new Error('You can\'t see me');
     }
 
     return order;
-  } 
+  },
+  async orders(parent, args, ctx, info) {
+    const {userId} = ctx.request;
+    if(!userId) {
+      throw new Error('you must be signed in');
+    }
+    return ctx.db.query.orders({
+      where: {
+        user: {id: userId}
+      }
+    }, info);
+  },
   // async items(parent, args, ctx, info) {
   //   const items = await ctx.db.query.items();
   //   return items;
